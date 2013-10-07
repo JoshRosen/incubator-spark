@@ -621,7 +621,7 @@ class RDD(object):
         >>> sorted(rdd.countByKey().items())
         [('a', 2), ('b', 1)]
         """
-        return self.map(lambda x: x[0]).countByValue()
+        return self.keys().countByValue()
 
     def join(self, other, numPartitions=None):
         """
@@ -859,6 +859,18 @@ class RDD(object):
         [(0, ([0], [0])), (1, ([1], [1])), (2, ([], [2])), (3, ([], [3])), (4, ([2], [4]))]
         """
         return self.map(lambda x: (f(x), x))
+
+    def keys(self):
+      """
+      Return an RDD with the keys of each tuple.
+      """
+      return self.map(lambda x: x[0])
+
+    def values(self):
+      """
+      Return an RDD with the values of each tuple.
+      """
+      return self.map(lambda x: x[1])
 
     # TODO: `lookup` is disabled because we can't make direct comparisons based
     # on the key; we need to compare the hash of the key to the hash of the
