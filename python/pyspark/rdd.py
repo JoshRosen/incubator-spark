@@ -617,7 +617,7 @@ class RDD(object):
         Count the number of elements for each key, and return the result to the
         master as a dictionary.
 
-        >>> rdd = sc.parallelize([("a", 1), ("b", 1), ("a", 1)])
+        >>> rdd = sc.parallelize([("a", "Ant"), ("b", "Bat"), ("a", "Ape")])
         >>> sorted(rdd.countByKey().items())
         [('a', 2), ('b', 1)]
         """
