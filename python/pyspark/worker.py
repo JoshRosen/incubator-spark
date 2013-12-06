@@ -23,17 +23,14 @@ import sys
 import time
 import socket
 import traceback
-# CloudPickler needs to be imported so that depicklers are registered using the
-# copy_reg module.
 from pyspark.accumulators import _accumulatorRegistry
 from pyspark.broadcast import Broadcast, _broadcastRegistry
-from pyspark.cloudpickle import CloudPickler
 from pyspark.files import SparkFiles
 from pyspark.serializers import write_with_length, write_int, read_long, \
-    write_long, read_int, SpecialLengths, UTF8Deserializer, PickleSerializer
+    write_long, read_int, SpecialLengths, UTF8Deserializer, DillSerializer
 
 
-pickleSer = PickleSerializer()
+pickleSer = DillSerializer()
 utf8_deserializer = UTF8Deserializer()
 
 

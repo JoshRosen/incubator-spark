@@ -89,11 +89,10 @@ Exception:...
 import struct
 import SocketServer
 import threading
-from pyspark.cloudpickle import CloudPickler
-from pyspark.serializers import read_int, PickleSerializer
+from pyspark.serializers import read_int, DillSerializer
 
 
-pickleSer = PickleSerializer()
+pickleSer = DillSerializer()
 
 # Holds accumulators registered on the current machine, keyed by ID. This is then used to send
 # the local accumulator updates back to the driver program at the end of a task.

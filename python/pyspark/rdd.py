@@ -34,7 +34,7 @@ from random import Random
 from math import sqrt, log
 
 from pyspark.serializers import NoOpSerializer, CartesianDeserializer, \
-    BatchedSerializer, CloudPickleSerializer, PairDeserializer, \
+    BatchedSerializer, DillSerializer, PairDeserializer, \
     PickleSerializer, pack_long
 from pyspark.join import python_join, python_left_outer_join, \
     python_right_outer_join, python_cogroup
@@ -1551,7 +1551,7 @@ class PipelinedRDD(RDD):
             self._jrdd_deserializer = NoOpSerializer()
         command = (self.func, self._prev_jrdd_deserializer,
                    self._jrdd_deserializer)
-        pickled_command = CloudPickleSerializer().dumps(command)
+        pickled_command = DillSerializer().dumps(command)
         broadcast_vars = ListConverter().convert(
             [x._jbroadcast for x in self.ctx._pickled_broadcast_vars],
             self.ctx._gateway._gateway_client)

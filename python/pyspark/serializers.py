@@ -61,11 +61,11 @@ batching:
 """
 
 import cPickle
+import dill
 from itertools import chain, izip, product
 import marshal
 import struct
 import sys
-from pyspark import cloudpickle
 
 
 __all__ = ["PickleSerializer", "MarshalSerializer"]
@@ -279,9 +279,10 @@ class PickleSerializer(FramedSerializer):
     def dumps(self, obj): return cPickle.dumps(obj, 2)
     loads = cPickle.loads
 
-class CloudPickleSerializer(PickleSerializer):
+class DillSerializer(PickleSerializer):
 
-    def dumps(self, obj): return cloudpickle.dumps(obj, 2)
+    def dumps(self, obj): return dill.dumps(obj, 2)
+    def loads(self, stream): return dill.loads(stream)
 
 
 class MarshalSerializer(FramedSerializer):
