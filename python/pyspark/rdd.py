@@ -28,7 +28,7 @@ from tempfile import NamedTemporaryFile
 from threading import Thread
 
 from pyspark.serializers import NoOpSerializer, CartesianDeserializer, \
-    BatchedSerializer, CloudPickleSerializer, pack_long
+    BatchedSerializer, DillSerializer, pack_long
 from pyspark.join import python_join, python_left_outer_join, \
     python_right_outer_join, python_cogroup
 from pyspark.statcounter import StatCounter
@@ -973,7 +973,7 @@ class PipelinedRDD(RDD):
         else:
             serializer = self.ctx.serializer
         command = (self.func, self._prev_jrdd_deserializer, serializer)
-        pickled_command = CloudPickleSerializer().dumps(command)
+        pickled_command = DillSerializer().dumps(command)
         broadcast_vars = ListConverter().convert(
             [x._jbroadcast for x in self.ctx._pickled_broadcast_vars],
             self.ctx._gateway._gateway_client)

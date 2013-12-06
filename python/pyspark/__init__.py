@@ -35,7 +35,9 @@ Public classes:
 """
 import sys
 import os
-sys.path.insert(0, os.path.join(os.environ["SPARK_HOME"], "python/lib/py4j0.7.egg"))
+SPARK_HOME = os.environ["SPARK_HOME"]
+sys.path.insert(0, os.path.join(SPARK_HOME, "python/lib/py4j0.7.egg"))
+sys.path.insert(0, os.path.join(SPARK_HOME, "python/lib/dill-0.2b1.zip/dill-0.2b1/"))
 
 
 from pyspark.context import SparkContext
