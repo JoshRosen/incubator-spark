@@ -34,7 +34,7 @@ import org.apache.spark.executor.TaskMetrics
 private[scheduler] sealed trait DAGSchedulerEvent
 
 private[scheduler] case class JobSubmitted(
-    jobId: Int,
+    jobId: JobId,
     finalRDD: RDD[_],
     func: (TaskContext, Iterator[_]) => _,
     partitions: Array[Int],

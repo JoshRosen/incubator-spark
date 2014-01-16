@@ -40,11 +40,17 @@ import org.apache.spark.partial.BoundedDouble
 import org.apache.spark.partial.CountEvaluator
 import org.apache.spark.partial.GroupedCountEvaluator
 import org.apache.spark.partial.PartialResult
+<<<<<<< Updated upstream
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.{Utils, BoundedPriorityQueue, SerializableHyperLogLog}
+=======
+import org.apache.spark.storage.{BlockManager, BlockId, RDDBlockId, StorageLevel}
+import org.apache.spark.util.{Utils, BoundedPriorityQueue}
+>>>>>>> Stashed changes
 
 import org.apache.spark.SparkContext._
 import org.apache.spark._
+import org.apache.spark.scheduler.TaskLocation
 
 /**
  * A Resilient Distributed Dataset (RDD), the basic abstraction in Spark. Represents an immutable,
@@ -964,6 +970,49 @@ abstract class RDD[T: ClassTag](
   /** Returns the first parent RDD */
   protected[spark] def firstParent[U: ClassTag] = {
     dependencies.head.rdd.asInstanceOf[RDD[U]]
+  }
+
+
+  private var cacheLocs: Array[Seq[TaskLocation]] = null
+  private var cacheLocsEpoch: Long = 0
+  private[spark] def getCacheLocs: Array[Seq[TaskLocation]] = {
+    val currentEpoch = sc.env.mapOutputTracker.getEpoch
+    if (cacheLocs == null || cacheLocsEpoch < currentEpoch) {
+      val blockIds = partitions.indices.map(index=> RDDBlockId(id, index)).toArray[BlockId]
+      val locs = BlockManager.blockIdsToBlockManagers(blockIds, sc.env, sc.env.blockManager.master)
+      cacheLocs = blockIds.map { id =>
+        locs.getOrElse(id, Nil).map(bm => TaskLocation(bm.host, bm.executorId))
+      }
+      // TODO: potential race here since we're not holding the epoch lock
+      cacheLocsEpoch = currentEpoch
+    }
+    cacheLocs
+  }
+
+  private[spark] def getPreferredLocs(partition: Int): Seq[TaskLocation] = synchronized {
+    // If the partition is cached, return the cache locations
+    val cached = getCacheLocs(partition)
+    if (!cached.isEmpty) {
+      return cached
+    }
+    // If the RDD has some placement preferences (as is the case for input RDDs), get those
+    val rddPrefs = preferredLocations(partitions(partition)).toList
+    if (!rddPrefs.isEmpty) {
+      return rddPrefs.map(host => TaskLocation(host))
+    }
+    // If the RDD has narrow dependencies, pick the first partition of the first narrow dep
+    // that has any placement preferences. Ideally we would choose based on transfer sizes,
+    // but this will do for now.
+    dependencies.foreach {
+      case n: NarrowDependency[_] =>
+        for (inPart <- n.getParents(partition)) {
+          val locs = n.rdd.getPreferredLocs(inPart)
+          if (locs != Nil)
+            return locs
+        }
+      case _ =>
+    }
+    Nil
   }
 
   /** The [[org.apache.spark.SparkContext]] that this RDD was created on. */

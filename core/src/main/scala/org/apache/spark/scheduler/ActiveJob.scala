@@ -17,7 +17,6 @@
 
 package org.apache.spark.scheduler
 
-import org.apache.spark.TaskContext
 
 import java.util.Properties
 
@@ -25,11 +24,9 @@ import java.util.Properties
  * Tracks information about an active job in the DAGScheduler.
  */
 private[spark] class ActiveJob(
-    val jobId: Int,
+    val jobId: JobId,
     val finalStage: Stage,
-    val func: (TaskContext, Iterator[_]) => _,
     val partitions: Array[Int],
-    val callSite: String,
     val listener: JobListener,
     val properties: Properties) {
 
@@ -37,3 +34,5 @@ private[spark] class ActiveJob(
   val finished = Array.fill[Boolean](numPartitions)(false)
   var numFinished = 0
 }
+
+private[spark] class JobId(val underlying: Int) extends AnyVal
